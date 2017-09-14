@@ -73,19 +73,19 @@ public class OrderBook
 
   }
 
-  public void bid(double limitPrice, int quantity)
+  public void bid(Party party, double limitPrice, int quantity)
   {
     // todo because of where I am plugging in this log statement, am creating an order for no other reason than to print
-    Order antiPatternOrderCreatedHereFixThis = new Order(limitPrice, quantity);
+    Order antiPatternOrderCreatedHereFixThis = new Order(party, limitPrice, quantity);
     
     logger.info(String.format("%s bidding %s", symbol, antiPatternOrderCreatedHereFixThis.priceAndQuantity()));
 
     bidOrAsk(bids, asks, limitPrice, quantity);
   }
 
-  public void ask(double limitPrice, int quantity)
+  public void ask(Party party, double limitPrice, int quantity)
   {
-    Order antiPatternOrderCreatedHereFixThis = new Order(limitPrice, quantity);
+    Order antiPatternOrderCreatedHereFixThis = new Order(party, limitPrice, quantity);
 
     logger.info(String.format("%s asking %s", symbol, antiPatternOrderCreatedHereFixThis.priceAndQuantity()));
 
