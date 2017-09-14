@@ -33,17 +33,12 @@ cronExpressionConstants:
 
 
 # -------------------------------------------------------------------------
-oms:
-  unitSeconds: 60        # seconds per frequency / unitSeconds is the period
-  frequency: 6           #      how long before sessions are terminated for inactivity
-  itemsPerUpdate: 10     # how many updates to perform durings scheduled update
-  cron: ${cronExpressionConstants.everySecond}    #oh, never mind above, for now use a cron
 
 ghost:
   unitSeconds: 60        # seconds per frequency / unitSeconds is the period
   frequency: 6           #      how long before sessions are terminated for inactivity
   itemsPerUpdate: 10     # how many updates to perform durings scheduled update
-  cron: ${cronExpressionConstants.everySecond}    #oh, never mind above, for now use a cron
+  cron: ${cronExpressionConstants.everyMinute}    #oh, never mind above, for now use a cron
   symbols: ['FOOX', 'BOOX', 'DOOX']
 
 
