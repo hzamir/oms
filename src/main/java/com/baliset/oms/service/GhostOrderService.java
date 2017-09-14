@@ -28,7 +28,7 @@ public class GhostOrderService
     this.orderService = orderService;
     this.ghostConfig  = ghostConfig;
     priceGenerator    = new PriceGenerator(1, 500);
-    sizeGenerator     = new RangeGenerator(1,100);
+    sizeGenerator     = new RangeGenerator(1,100) { @Override public int generate() { return 10*super.generate(); }};
 
     fluctuator        = new Fluctuator(0.01, 0.15);
 
