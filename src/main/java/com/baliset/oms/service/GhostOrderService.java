@@ -15,19 +15,24 @@ public class GhostOrderService
   private final OrderService orderService;
   private final GhostConfig  ghostConfig;
 
+
   private final RangeGenerator sizeGenerator;
   private final PriceGenerator priceGenerator;
   private final Fluctuator     fluctuator;
 
-  private final String party = "Ghost";
+  private final String partyname = "Ghost";
+  private final Party party;
 
-  @Autowired public GhostOrderService(OrderService orderService, GhostConfig ghostConfig)
+  @Autowired public GhostOrderService(OrderService orderService, PartyService partyService, GhostConfig ghostConfig)
   {
     this.orderService = orderService;
     this.ghostConfig  = ghostConfig;
     priceGenerator    = new PriceGenerator(1, 500);
     sizeGenerator     = new RangeGenerator(1,100);
+
     fluctuator        = new Fluctuator(0.01, 0.15);
+
+    party = partyService.create(partyname);                       // ensure first there is such a party
 
     ghostConfig.getSymbols().forEach(orderService::createBook);   // create some books as specified in ghost config
     ghostConfig.getSymbols().forEach(this::seedOrders);

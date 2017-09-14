@@ -34,11 +34,11 @@ public class OrderService
   }
 
   // order entry (executions of crossing bid-ask are automatic)
-  public void bid(String symbol, String party, int quantity, double price)
+  public void bid(String symbol, Party party, int quantity, double price)
   {
     book(symbol).bid(price, quantity);
   }
-  public void ask(String symbol, String party, int quantity, double price)
+  public void ask(String symbol, Party party, int quantity, double price)
   {
     book(symbol).ask(price, quantity);
   }

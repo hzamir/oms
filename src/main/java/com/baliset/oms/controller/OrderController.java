@@ -10,14 +10,20 @@ public class OrderController
 {
 
   private final OrderService orderService;
-  @Autowired public OrderController(OrderService orderService) {this.orderService = orderService;}
+  private final PartyService partyService;
+
+  @Autowired public OrderController(OrderService orderService, PartyService partyService)
+  {
+    this.orderService = orderService;
+    this.partyService = partyService;
+  }
 
 
   @RequestMapping(value="/order/bid", method = RequestMethod.POST, produces={"application/json"})
   public ResponseEntity<Quote>
   bid(@RequestBody OrderRequest req) throws Exception
   {
-    orderService.bid(req.symbol, req.party, req.quantity, req.price);
+    orderService.bid(req.symbol, partyService.lookup(req.party), req.quantity, req.price);
 
     HttpStatus httpStatus =  HttpStatus.OK;
     return new ResponseEntity<>(orderService.top(req.symbol),httpStatus);
@@ -27,7 +33,7 @@ public class OrderController
   public ResponseEntity<Quote>
   ask(@RequestBody OrderRequest req) throws Exception
   {
-    orderService.ask(req.symbol, req.party, req.quantity, req.price);
+    orderService.ask(req.symbol, partyService.lookup(req.party), req.quantity, req.price);
 
     HttpStatus httpStatus =  HttpStatus.OK;
     return new ResponseEntity<>(orderService.top(req.symbol),httpStatus);
