@@ -1,7 +1,7 @@
-package com.baliset.feed.controller;
+package com.baliset.oms.controller;
 
-import com.baliset.feed.model.*;
-import com.baliset.feed.service.*;
+import com.baliset.oms.model.*;
+import com.baliset.oms.service.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;

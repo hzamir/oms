@@ -1,6 +1,6 @@
 # the prefixes app, server, infoutil, endpoints and spring all belong to spring boot
 app:
-  name:         feed
+  name:         oms
   description:  a microservice that serves up data
 
 server:
@@ -33,7 +33,7 @@ cronExpressionConstants:
 
 
 # -------------------------------------------------------------------------
-feed:
+oms:
   unitSeconds: 60        # seconds per frequency / unitSeconds is the period
   frequency: 6           #      how long before sessions are terminated for inactivity
   itemsPerUpdate: 10     # how many updates to perform durings scheduled update

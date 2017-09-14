@@ -1,7 +1,7 @@
-package com.baliset.feed.service;
+package com.baliset.oms.service;
 
-import com.baliset.feed.conf.*;
-import com.baliset.feed.model.*;
+import com.baliset.oms.conf.*;
+import com.baliset.oms.model.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.scheduling.annotation.*;
 import org.springframework.stereotype.*;

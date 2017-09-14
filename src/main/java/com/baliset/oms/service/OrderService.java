@@ -1,6 +1,6 @@
-package com.baliset.feed.service;
+package com.baliset.oms.service;
 
-import com.baliset.feed.model.*;
+import com.baliset.oms.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

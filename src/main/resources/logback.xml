@@ -28,7 +28,7 @@
     </rollingPolicy>
 
   </appender>
-  <logger name="com.baliset.feed" level="debug" />
+  <logger name="com.baliset.oms" level="debug" />
   <logger name="org.springframework.web.servlet.handler.*" level="warn" />
   <logger name="org.springframework.web.servlet.mvc.method.annotation.*" level="warn" />
 

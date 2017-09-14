@@ -1,4 +1,4 @@
-package com.baliset.feed.conf;
+package com.baliset.oms.conf;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -8,8 +8,6 @@ import org.springframework.validation.annotation.*;
 import javax.validation.constraints.*;
 import java.util.*;
 
-// todo: inherit most of these properties from from a common frequencyRelated configuration type
-// so far this is replicating the values in feed
 // also consider pushing the generic portions of these configurations into the utility library to use as needed
 // also work out solving the problem of not seeing the inherited properties in configprops actuator endpoints
 

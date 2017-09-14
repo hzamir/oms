@@ -1,6 +1,6 @@
-package com.baliset.feed;
+package com.baliset.oms;
 
-import com.baliset.feed.model.*;
+import com.baliset.oms.model.*;
 import org.junit.Assert;
 import org.junit.Test;
 

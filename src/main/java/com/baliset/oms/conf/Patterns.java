@@ -1,4 +1,4 @@
-package com.baliset.feed.conf;
+package com.baliset.oms.conf;
 
 public class Patterns
 {

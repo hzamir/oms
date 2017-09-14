@@ -1,4 +1,4 @@
-package com.baliset.feed.service;
+package com.baliset.oms.service;
 
 public class PriceGenerator
 {

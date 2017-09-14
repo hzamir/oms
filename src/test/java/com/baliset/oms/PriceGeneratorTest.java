@@ -1,18 +1,17 @@
-package com.baliset.feed;
+package com.baliset.oms;
 
-import com.baliset.feed.service.*;
-import org.junit.Assert;
-import org.junit.Test;
+import com.baliset.oms.service.*;
+import org.junit.*;
 
-public class RangeGeneratorTest
+public class PriceGeneratorTest
 {
 
   private void testBoundaries(int min, int max, int trials)
   {
-    RangeGenerator rg = new RangeGenerator(min, max);
+    PriceGenerator rg = new PriceGenerator(min, max);
 
     for(int i = 0; i < trials; ++i) {
-      int result = rg.generate();
+      double result = rg.generate();
       Assert.assertTrue(result >= min && result <= max);
     }
   }

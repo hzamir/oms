@@ -1,15 +1,15 @@
-package com.baliset.feed.model;
+package com.baliset.oms.model;
 
 import java.text.*;
 
-public class Order
+public class AgOrder
 {
   double limitPrice;
   int quantity;
 
-  static DecimalFormat df = new DecimalFormat("#0.0#");
+  private static DecimalFormat df = new DecimalFormat("#0.0#");
 
-  Order(double limitPrice, int quantity)
+  AgOrder(double limitPrice, int quantity)
   {
     this.limitPrice = limitPrice;
     this.quantity = quantity;

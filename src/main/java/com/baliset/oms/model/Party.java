@@ -1,4 +1,4 @@
-package com.baliset.feed.model;
+package com.baliset.oms.model;
 
 import java.util.*;
 
