@@ -1,4 +1,4 @@
-package com.baliset.oms.service;
+package com.baliset.oms.util;
 
 public class Fluctuator
 {

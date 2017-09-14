@@ -1,6 +1,6 @@
 package com.baliset.oms;
 
-import com.baliset.oms.service.*;
+import com.baliset.oms.util.*;
 import org.junit.*;
 
 public class PriceGeneratorTest
