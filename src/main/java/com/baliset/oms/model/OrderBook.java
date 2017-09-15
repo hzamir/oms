@@ -1,5 +1,6 @@
 package com.baliset.oms.model;
 
+import com.baliset.oms.util.*;
 import org.slf4j.*;
 
 import java.util.*;
@@ -17,6 +18,7 @@ public class OrderBook
   private final SortedMap<Integer, AgOrder> asks = new TreeMap<>(ascendingOrder);
 
   private final String symbol;
+  private final NumConverter nc = new NumConverter();
 
   public OrderBook(String symbol)
   {
@@ -76,26 +78,31 @@ public class OrderBook
   public void bid(Party party, double limitPrice, int quantity)
   {
     // todo because of where I am plugging in this log statement, am creating an order for no other reason than to print
-    Order antiPatternOrderCreatedHereFixThis = new Order(party, limitPrice, quantity);
-    
-    logger.info(String.format("%s bidding %s", symbol, antiPatternOrderCreatedHereFixThis.priceAndQuantity()));
+    Order fixme = new Order(party, limitPrice, quantity);
+
+    // to store the original order, so it can then be partially or fully fulfilled with an execution if/when it crosses
+
+    logger.info(String.format("%s bids for %s %s",party, symbol, priceAndQuantity(fixme)));
 
     bidOrAsk(bids, asks, limitPrice, quantity);
   }
 
+  private String priceAndQuantity(IOrder o)
+  {
+    return o.getQuantity() + "@" + nc.format(o.getPrice());
+  }
+
   public void ask(Party party, double limitPrice, int quantity)
   {
-    Order antiPatternOrderCreatedHereFixThis = new Order(party, limitPrice, quantity);
+    Order fixme = new Order(party, limitPrice, quantity);
 
-    logger.info(String.format("%s asking %s", symbol, antiPatternOrderCreatedHereFixThis.priceAndQuantity()));
+    logger.info(String.format("%s asks for %s %s", party, symbol, priceAndQuantity(fixme)));
 
     bidOrAsk(asks, bids, limitPrice, quantity);
   }
 
 
-  static private int     dtoi(double v)   { return (int)(v * 100.0); }
-  static private double  itod(int i)      { return (double)i * 0.01; }
-  static private Integer keyFor(double v) { return dtoi(v);          }
+  static private Integer keyFor(double v) { return NumConverter.dtoi(v);          }
 
   public Quote topOfBook()
   {
@@ -103,7 +110,7 @@ public class OrderBook
     Integer bestAsk = asks.firstKey();
 
     // todo: yes, but how many at that price? And instrument is the wrong term is should be BidAsk or something.
-    return new Quote(symbol, itod(bestBid != null? bestBid: 0), itod(bestAsk != null? bestAsk: Integer.MAX_VALUE));
+    return new Quote(symbol, NumConverter.itod(bestBid != null? bestBid: 0), NumConverter.itod(bestAsk != null? bestAsk: Integer.MAX_VALUE));
   }
 
   private void appendOrders(StringBuilder sb, SortedMap<Integer, AgOrder> orders)
@@ -115,7 +122,7 @@ public class OrderBook
         sb.append(", ");
       else
         prefixCommas = true;
-      sb.append(o.priceAndQuantity());
+      sb.append(priceAndQuantity(o));
     }
     sb.append("}");
   }

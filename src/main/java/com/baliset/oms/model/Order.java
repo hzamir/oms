@@ -1,26 +1,18 @@
 package com.baliset.oms.model;
 
-import java.text.*;
-
-public class Order
+public class Order implements IOrder
 {
   Party party;
-  double limitPrice;
-  int quantity;
+  private double limitPrice;
+  private int quantity;
 
-  static DecimalFormat df = new DecimalFormat("#0.0#");
-
-  Order(Party party, double limitPrice, int quantity)
+  Order(Party p, double limitPrice, int quantity)
   {
-    this.party = party;
+    party = p;
     this.limitPrice = limitPrice;
     this.quantity = quantity;
   }
 
-  // utility for output
-  String priceAndQuantity()
-  {
-    return df.format(limitPrice)+"="+quantity;
-  }
-
+  public double getPrice() { return limitPrice;}
+  public int getQuantity() { return quantity;  }
 }

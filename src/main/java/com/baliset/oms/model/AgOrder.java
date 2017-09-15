@@ -1,13 +1,9 @@
 package com.baliset.oms.model;
 
-import java.text.*;
-
-public class AgOrder
+public class AgOrder implements IOrder
 {
   double limitPrice;
   int quantity;
-
-  private static DecimalFormat df = new DecimalFormat("#0.0#");
 
   AgOrder(double limitPrice, int quantity)
   {
@@ -15,10 +11,7 @@ public class AgOrder
     this.quantity = quantity;
   }
 
-  // utility for output
-  String priceAndQuantity()
-  {
-    return df.format(limitPrice)+"="+quantity;
-  }
 
+  @Override public double getPrice() { return limitPrice; }
+  @Override public int getQuantity() { return quantity;   }
 }
