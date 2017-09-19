@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.*;
 import org.springframework.scheduling.annotation.*;
 import org.springframework.stereotype.*;
 
+import java.util.*;
 import java.util.stream.*;
 
 @Service
@@ -14,28 +15,52 @@ public class GhostOrderService
 {
   private final OrderService orderService;
   private final GhostConfig  ghostConfig;
+  private final TradeService tradeService;
 
 
   private final RangeGenerator sizeGenerator;
+  private final RangeGenerator partyGenerator;
+
   private final PriceGenerator priceGenerator;
   private final Fluctuator     fluctuator;
 
-  private final String partyname = "Ghost";
-  private final Party party;
+  private final Party[] parties;
+  private final String[] partynames = { "Paul", "John", "Mary", "Rand",  "Yoko", "Robb", "Arya", "Quin", "Phil", "Mave"};
 
-  @Autowired public GhostOrderService(OrderService orderService, PartyService partyService, GhostConfig ghostConfig)
+
+  @Autowired public GhostOrderService(OrderService orderService, PartyService partyService, GhostConfig ghostConfig, TradeService tradeService)
   {
     this.orderService = orderService;
+    this.tradeService = tradeService;
     this.ghostConfig  = ghostConfig;
     priceGenerator    = new PriceGenerator(1, 500);
     sizeGenerator     = new RangeGenerator(1,100) { @Override public int generate() { return 10*super.generate(); }};
+    int numParties = 10;
+
+    assert (numParties == partynames.length);
+    partyGenerator = new RangeGenerator(numParties);
 
     fluctuator        = new Fluctuator(0.01, 0.15);
 
-    party = partyService.create(partyname);                       // ensure first there is such a party
+    parties = new Party[numParties];
+    IntStream.range(0, numParties).forEach(index->parties[index] = partyService.create(partynames[index]));
 
     ghostConfig.getSymbols().forEach(orderService::createBook);   // create some books as specified in ghost config
     ghostConfig.getSymbols().forEach(this::seedOrders);
+  }
+
+  private void bid(String symbol, Party party, int quantity, double price)
+  {
+    List<TradeEx> tradeExes = orderService.bid(symbol,party,quantity, price);
+    if(tradeExes != null)
+      tradeService.reportTrades(tradeExes);
+  }
+
+  private void ask(String symbol, Party party, int quantity, double price)
+  {
+    List<TradeEx> tradeExes = orderService.ask(symbol,party,quantity, price);
+    if(tradeExes != null)
+      tradeService.reportTrades(tradeExes);
   }
 
 
@@ -51,8 +76,15 @@ public class GhostOrderService
       double t = ask; ask  = bid; bid = t;
     }
 
-    orderService.bid(symbol,party,sizeGenerator.generate(),bid);
-    orderService.ask(symbol,party,sizeGenerator.generate(),ask);
+    Party biddingParty = parties[partyGenerator.generate()];
+    Party askingParty;
+
+    do {
+      askingParty = parties[partyGenerator.generate()];
+    } while(askingParty == biddingParty);
+
+    bid(symbol,biddingParty,sizeGenerator.generate(),bid);
+    ask(symbol,askingParty,sizeGenerator.generate(),ask);
 
     IntStream.range(0, 6).forEach($ -> arbitraryOrder(symbol));
 
@@ -70,8 +102,16 @@ public class GhostOrderService
     double delta = nbid - bid;
     double nask = (delta > 0)? ask + delta: ask - delta;
 
-    orderService.bid(symbol,party,sizeGenerator.generate(),nbid);
-    orderService.ask(symbol,party,sizeGenerator.generate(),nask);
+    Party biddingParty = parties[partyGenerator.generate()];
+    Party askingParty;
+
+    do {
+      askingParty = parties[partyGenerator.generate()];
+    } while(askingParty == biddingParty);
+
+
+    bid(symbol,biddingParty,sizeGenerator.generate(),nbid);
+    ask(symbol,askingParty,sizeGenerator.generate(),nask);
   }
 
   @Scheduled(cron = "${ghost.cron}")

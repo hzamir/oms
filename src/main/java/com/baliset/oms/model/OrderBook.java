@@ -25,80 +25,88 @@ public class OrderBook
     this.symbol = symbol;
   }
 
-  private void bidOrAsk(SortedMap<Integer, AgOrder> sameSide, SortedMap<Integer, AgOrder> otherSide, double limitPrice, int quantity)
+
+  // if greater than zero there is a match, and returned value is the execution price
+  private int executionPrice(boolean bid, Order order, AgOrder counterpart)
   {
+    int op = NumConverter.dtoi(order.getPrice());
+    int cp = NumConverter.dtoi(counterpart.getPrice());
 
-    if (quantity <= 0) // no guidance on handling negative quantities
-      return;
+    if(bid) return cp <= op? cp:0;
+    else    return cp >= op? cp:0;
+  }
 
-    int     unmatchedQuantity = quantity;
-    boolean moreMatching;
 
+  private List<TradeEx> bidOrAsk(SortedMap<Integer, AgOrder> sameSide, SortedMap<Integer, AgOrder> otherSide, Order order)
+  {
+    logger.info(String.format("%04d: %s %s for %s %s",
+        order.getSequence(),
+        order.getParty(),
+        (order.isBid()? "bids": "asks"),
+        symbol,
+        priceAndQuantity(order)));
+
+    boolean bid = sameSide == bids;
+
+    List<TradeEx> result = null;
     // match bids or asks against best prices on opposing side
-    do {
-      moreMatching = false;
-      if (!otherSide.isEmpty()) {
-        Integer counterpartKey = otherSide.firstKey();
-        AgOrder   counterpart    = otherSide.get(counterpartKey);
+    while(true) {
 
+      if(otherSide.isEmpty())
+        break;
 
-        if (sameSide == bids ? counterpart.limitPrice <= limitPrice : counterpart.limitPrice >= limitPrice) {
-          if (counterpart.quantity > unmatchedQuantity)  // put unmatched balance back
-          {
-            otherSide.put(counterpartKey, new AgOrder(counterpart.limitPrice,
-                counterpart.quantity - unmatchedQuantity));
-            unmatchedQuantity = 0;
-          } else {
-            otherSide.remove(counterpartKey);
-            unmatchedQuantity -= counterpart.quantity;
-          }
-          if (unmatchedQuantity > 0)
-            moreMatching = true;
-        }
-      }
-    } while (moreMatching);
+      Integer counterpartKey   = otherSide.firstKey();
+      AgOrder counterpart      = otherSide.get(counterpartKey);
+      List<TradeEx> tradesPerAgOrder = counterpart.match(bid, order);
 
-    // any unmatched quantities need to be added to orders
-    // in the real world, we might prefer that they exist even briefly as orders prior to matching
-    // or otherwise be recorded as a match
-    // but for the purposes of this test, only remaining unmatched orders are needed per spec
+      if (counterpart.getUnfilled() == 0)
+        otherSide.remove(counterpartKey);   // remove exhausted AgOrder
+
+      if (tradesPerAgOrder.isEmpty())       // we are done matching
+        break;
+
+      // add to total list of executions
+      if(result == null)
+        result = tradesPerAgOrder;
+      else
+        result.addAll(tradesPerAgOrder);
+    };
+    
+    //--- add any unmatched part of order to sameside either a new or existing agorder
+    int     unmatchedQuantity = order.getUnfilled();
     if (unmatchedQuantity > 0) {
-      Integer limitKey   = keyFor(limitPrice);
+      Integer limitKey     = keyFor(order.getPrice());
       AgOrder   toCoalesce = sameSide.get(limitKey);
 
       if (toCoalesce != null) {
-        unmatchedQuantity += toCoalesce.quantity;
+        toCoalesce.addOrder(order);
+      }  else {
+        sameSide.put(limitKey, new AgOrder(order));   // an entirely new order
       }
-      // add or overwrite the order for the same price with correct quantity
-      sameSide.put(limitKey, new AgOrder(limitPrice, unmatchedQuantity));
     }
 
-  }
-
-  public void bid(Party party, double limitPrice, int quantity)
-  {
-    // todo because of where I am plugging in this log statement, am creating an order for no other reason than to print
-    Order fixme = new Order(party, limitPrice, quantity);
-
-    // to store the original order, so it can then be partially or fully fulfilled with an execution if/when it crosses
-
-    logger.info(String.format("%s bids for %s %s",party, symbol, priceAndQuantity(fixme)));
-
-    bidOrAsk(bids, asks, limitPrice, quantity);
+    return result;
   }
 
   private String priceAndQuantity(IOrder o)
   {
-    return o.getQuantity() + "@" + nc.format(o.getPrice());
+    return o.getUnfilled() + "@" + nc.format(o.getPrice());
   }
 
-  public void ask(Party party, double limitPrice, int quantity)
+  public List<TradeEx> bid(Party party, double limitPrice, int quantity)
   {
-    Order fixme = new Order(party, limitPrice, quantity);
+    Order order = new Order(true, party, limitPrice, quantity);
 
-    logger.info(String.format("%s asks for %s %s", party, symbol, priceAndQuantity(fixme)));
 
-    bidOrAsk(asks, bids, limitPrice, quantity);
+    return bidOrAsk(bids, asks, order);
+  }
+
+
+  public List<TradeEx>  ask(Party party, double limitPrice, int quantity)
+  {
+    Order order = new Order(false, party, limitPrice, quantity);
+
+    return bidOrAsk(asks, bids, order);
   }
 
 
