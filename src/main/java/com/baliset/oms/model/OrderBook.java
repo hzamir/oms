@@ -1,5 +1,6 @@
 package com.baliset.oms.model;
 
+import com.baliset.oms.util.*;
 import org.slf4j.*;
 
 import java.util.*;
@@ -17,93 +18,95 @@ public class OrderBook
   private final SortedMap<Integer, AgOrder> asks = new TreeMap<>(ascendingOrder);
 
   private final String symbol;
+  private final NumConverter nc = new NumConverter();
 
   public OrderBook(String symbol)
   {
     this.symbol = symbol;
   }
 
-  private void bidOrAsk(SortedMap<Integer, AgOrder> sameSide, SortedMap<Integer, AgOrder> otherSide, double limitPrice, int quantity)
+
+  private List<TradeEx> bidOrAsk(SortedMap<Integer, AgOrder> sameSide, SortedMap<Integer, AgOrder> otherSide, Order order)
   {
+    logger.info(String.format("%04d: %s %s for %s %s",
+        order.getSequence(),
+        order.getParty(),
+        (order.isBid()? "bids": "asks"),
+        symbol,
+        priceAndQuantity(order)));
 
-    if (quantity <= 0) // no guidance on handling negative quantities
-      return;
+    boolean bid = sameSide == bids;
 
-    int     unmatchedQuantity = quantity;
-    boolean moreMatching;
-
+    List<TradeEx> result = null;
     // match bids or asks against best prices on opposing side
-    do {
-      moreMatching = false;
-      if (!otherSide.isEmpty()) {
-        Integer counterpartKey = otherSide.firstKey();
-        AgOrder   counterpart    = otherSide.get(counterpartKey);
+    while(true) {
 
+      if(otherSide.isEmpty())
+        break;
 
-        if (sameSide == bids ? counterpart.limitPrice <= limitPrice : counterpart.limitPrice >= limitPrice) {
-          if (counterpart.quantity > unmatchedQuantity)  // put unmatched balance back
-          {
-            otherSide.put(counterpartKey, new AgOrder(counterpart.limitPrice,
-                counterpart.quantity - unmatchedQuantity));
-            unmatchedQuantity = 0;
-          } else {
-            otherSide.remove(counterpartKey);
-            unmatchedQuantity -= counterpart.quantity;
-          }
-          if (unmatchedQuantity > 0)
-            moreMatching = true;
-        }
-      }
-    } while (moreMatching);
+      Integer counterpartKey   = otherSide.firstKey();
+      AgOrder counterpart      = otherSide.get(counterpartKey);
+      List<TradeEx> tradesPerAgOrder = counterpart.match(bid, order);
 
-    // any unmatched quantities need to be added to orders
-    // in the real world, we might prefer that they exist even briefly as orders prior to matching
-    // or otherwise be recorded as a match
-    // but for the purposes of this test, only remaining unmatched orders are needed per spec
+      if (counterpart.getUnfilled() == 0)
+        otherSide.remove(counterpartKey);   // remove exhausted AgOrder
+
+      if (tradesPerAgOrder.isEmpty())       // we are done matching
+        break;
+
+      // add to total list of executions
+      if(result == null)
+        result = tradesPerAgOrder;
+      else
+        result.addAll(tradesPerAgOrder);
+    }
+    
+    //--- add any unmatched part of order to sameside either a new or existing agorder
+    int     unmatchedQuantity = order.getUnfilled();
     if (unmatchedQuantity > 0) {
-      Integer limitKey   = keyFor(limitPrice);
+      Integer limitKey     = keyFor(order.getPrice());
       AgOrder   toCoalesce = sameSide.get(limitKey);
 
       if (toCoalesce != null) {
-        unmatchedQuantity += toCoalesce.quantity;
+        toCoalesce.addOrder(order);
+      }  else {
+        sameSide.put(limitKey, new AgOrder(order));   // an entirely new order
       }
-      // add or overwrite the order for the same price with correct quantity
-      sameSide.put(limitKey, new AgOrder(limitPrice, unmatchedQuantity));
     }
 
+    return result;
   }
 
-  public void bid(double limitPrice, int quantity)
+  private String priceAndQuantity(IOrder o)
   {
-    // todo because of where I am plugging in this log statement, am creating an order for no other reason than to print
-    Order antiPatternOrderCreatedHereFixThis = new Order(limitPrice, quantity);
-    
-    logger.info(String.format("%s bidding %s", symbol, antiPatternOrderCreatedHereFixThis.priceAndQuantity()));
-
-    bidOrAsk(bids, asks, limitPrice, quantity);
+    return o.getUnfilled() + "@" + nc.format(o.getPrice());
   }
 
-  public void ask(double limitPrice, int quantity)
+  public List<TradeEx> bid(Party party, double limitPrice, int quantity)
   {
-    Order antiPatternOrderCreatedHereFixThis = new Order(limitPrice, quantity);
+    Order order = new Order(true, party, symbol, limitPrice, quantity);
 
-    logger.info(String.format("%s asking %s", symbol, antiPatternOrderCreatedHereFixThis.priceAndQuantity()));
-
-    bidOrAsk(asks, bids, limitPrice, quantity);
+    return bidOrAsk(bids, asks, order);
   }
 
 
-  static private int     dtoi(double v)   { return (int)(v * 100.0); }
-  static private double  itod(int i)      { return (double)i * 0.01; }
-  static private Integer keyFor(double v) { return dtoi(v);          }
+  public List<TradeEx>  ask(Party party, double limitPrice, int quantity)
+  {
+    Order order = new Order(false, party, symbol, limitPrice, quantity);
+
+    return bidOrAsk(asks, bids, order);
+  }
+
+
+  static private Integer keyFor(double v) { return NumConverter.dtoi(v);          }
 
   public Quote topOfBook()
   {
     Integer bestBid = bids.firstKey();
     Integer bestAsk = asks.firstKey();
 
-    // todo: yes, but how many at that price? And instrument is the wrong term is should be BidAsk or something.
-    return new Quote(symbol, itod(bestBid != null? bestBid: 0), itod(bestAsk != null? bestAsk: Integer.MAX_VALUE));
+    // todo: yes, but how many at that price?
+    return new Quote(symbol, NumConverter.itod(bestBid != null? bestBid: 0), NumConverter.itod(bestAsk != null? bestAsk: Integer.MAX_VALUE));
   }
 
   private void appendOrders(StringBuilder sb, SortedMap<Integer, AgOrder> orders)
@@ -115,7 +118,7 @@ public class OrderBook
         sb.append(", ");
       else
         prefixCommas = true;
-      sb.append(o.priceAndQuantity());
+      sb.append(priceAndQuantity(o));
     }
     sb.append("}");
   }
