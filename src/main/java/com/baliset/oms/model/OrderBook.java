@@ -26,17 +26,6 @@ public class OrderBook
   }
 
 
-  // if greater than zero there is a match, and returned value is the execution price
-  private int executionPrice(boolean bid, Order order, AgOrder counterpart)
-  {
-    int op = NumConverter.dtoi(order.getPrice());
-    int cp = NumConverter.dtoi(counterpart.getPrice());
-
-    if(bid) return cp <= op? cp:0;
-    else    return cp >= op? cp:0;
-  }
-
-
   private List<TradeEx> bidOrAsk(SortedMap<Integer, AgOrder> sameSide, SortedMap<Integer, AgOrder> otherSide, Order order)
   {
     logger.info(String.format("%04d: %s %s for %s %s",
@@ -70,7 +59,7 @@ public class OrderBook
         result = tradesPerAgOrder;
       else
         result.addAll(tradesPerAgOrder);
-    };
+    }
     
     //--- add any unmatched part of order to sameside either a new or existing agorder
     int     unmatchedQuantity = order.getUnfilled();
@@ -95,8 +84,7 @@ public class OrderBook
 
   public List<TradeEx> bid(Party party, double limitPrice, int quantity)
   {
-    Order order = new Order(true, party, limitPrice, quantity);
-
+    Order order = new Order(true, party, symbol, limitPrice, quantity);
 
     return bidOrAsk(bids, asks, order);
   }
@@ -104,7 +92,7 @@ public class OrderBook
 
   public List<TradeEx>  ask(Party party, double limitPrice, int quantity)
   {
-    Order order = new Order(false, party, limitPrice, quantity);
+    Order order = new Order(false, party, symbol, limitPrice, quantity);
 
     return bidOrAsk(asks, bids, order);
   }
@@ -117,7 +105,7 @@ public class OrderBook
     Integer bestBid = bids.firstKey();
     Integer bestAsk = asks.firstKey();
 
-    // todo: yes, but how many at that price? And instrument is the wrong term is should be BidAsk or something.
+    // todo: yes, but how many at that price?
     return new Quote(symbol, NumConverter.itod(bestBid != null? bestBid: 0), NumConverter.itod(bestAsk != null? bestAsk: Integer.MAX_VALUE));
   }
 
