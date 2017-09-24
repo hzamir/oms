@@ -40,16 +40,16 @@ public class TradeEx
   @Override public String toString()
   {
     if(bidAgressor)
-      return String.format("                                      T%04d: %s(B%04d)->%s(A%04d) buys %d shares at %f ts=%d",
+      return String.format("                                      T%04d: %s(B%04d)->%s(A%04d) buys %d shares of %s at %f ts=%d",
           sequence,
           bid.getParty().toString(), bid.getSequence(),
           ask.getParty().toString(), ask.getSequence(),
-          quantity, price, timestamp);
+          quantity, bid.getSymbol(), price, timestamp);
     else
-      return String.format("                                      T%04d: %s(A%04d)->%s(B%04d) sells %d shares at %f ts=%d",
+      return String.format("                                      T%04d: %s(A%04d)->%s(B%04d) sells %d shares of %s at %f ts=%d",
           sequence,
           ask.getParty().toString(), ask.getSequence(),
           bid.getParty().toString(), bid.getSequence(),
-          quantity, price, timestamp);
+          quantity,  bid.getSymbol(), price, timestamp);
   }
 }
