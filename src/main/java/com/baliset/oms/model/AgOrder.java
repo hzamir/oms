@@ -51,6 +51,7 @@ public class AgOrder implements IOrder
 
       int filled = ex.getQuantity();
       order.fill(filled);
+      counterOrder.fill(filled);
 
       // remove counterOrder if entirely filled
       if(counterOrder.getUnfilled() == 0)
