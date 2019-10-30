@@ -16,12 +16,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="oms" />
         <module name="feed" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="feed" target="1.8" />
       <module name="java-getting-started" target="1.8" />
+      <module name="oms" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

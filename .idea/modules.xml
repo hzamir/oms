@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/feed.iml" filepath="$PROJECT_DIR$/feed.iml" />
+      <module fileurl="file://$PROJECT_DIR$/oms.iml" filepath="$PROJECT_DIR$/oms.iml" />
     </modules>
   </component>
 </project>

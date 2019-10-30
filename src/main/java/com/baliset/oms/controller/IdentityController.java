@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.*;
 
 import java.util.*;
 
+@CrossOrigin(origins = "*")
 @RestController
 public class IdentityController
 {
